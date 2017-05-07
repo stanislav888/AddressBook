@@ -27,6 +27,8 @@ class AddressBookMainWindow : public QMainWindow
 	void openExternalLink(const QLineEdit *edit);
 
 public:
+	typedef QHash< QString, QString > ColumnsNames;
+
 	explicit AddressBookMainWindow(QWidget *parent = 0);
 	~AddressBookMainWindow();
 	const static QString ADDRESS_TABLE_NAME;
@@ -35,6 +37,13 @@ public:
 	const static QString PERSONS_TABLE_NAME;
 	const static QString ADDRESS_FK_COL_NAME;
 	const static QString COUNTRY_FK_COL_NAME;
+	const static QString FIRST_NAME_COL_NAME;
+	const static QString LAST_NAME_COL_NAME;
+	const static QString DOB_COL_NAME;
+	const static QString ADDRESS_LINE1_COL_NAME;
+	const static QString ADDRESS_LINE2_COL_NAME;
+	const static QString ADDRESS_LINE3_COL_NAME;
+	static void setColumnNamesAndHideAnother( QTableView * const table, const ColumnsNames &columnsNames );
 
 protected:
 	void setAddress(const QVariant &newAddressId);

@@ -28,14 +28,6 @@ namespace
 	enum Columns
 	{
 		Id,
-		FirstName,
-		LastName,
-		Dob,
-		AddressId,
-		Nationality,
-		Sex,
-		Email,
-		Skype
 	};
 
 	const int TEST_ADDRESSES_COUNT = 8;
@@ -129,6 +121,13 @@ const QString AddressBookMainWindow::COUNTRY_CODE_COLUMN( "countrycode" );
 const QString AddressBookMainWindow::PERSONS_TABLE_NAME( "persons" );
 const QString AddressBookMainWindow::ADDRESS_FK_COL_NAME( "addressid" );
 const QString AddressBookMainWindow::COUNTRY_FK_COL_NAME( "countryid" );
+const QString AddressBookMainWindow::FIRST_NAME_COL_NAME( "firstname" );
+const QString AddressBookMainWindow::LAST_NAME_COL_NAME( "lastname" );
+const QString AddressBookMainWindow::DOB_COL_NAME( "dob" );
+const QString AddressBookMainWindow::ADDRESS_LINE1_COL_NAME( "addressline1" );
+const QString AddressBookMainWindow::ADDRESS_LINE2_COL_NAME( "addressline2" );
+const QString AddressBookMainWindow::ADDRESS_LINE3_COL_NAME( "addressline3" );
+
 
 AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 	QMainWindow(parent),
@@ -174,19 +173,15 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 	m_personsModelPtr->setTable( PERSONS_TABLE_NAME );
 	m_personsModelPtr->select();
 	m_personsModelPtr->setEditStrategy( QSqlTableModel::OnFieldChange );
-	m_personsModelPtr->setHeaderData( FirstName, Qt::Horizontal, "First Name", Qt::DisplayRole );
-	m_personsModelPtr->setHeaderData( LastName, Qt::Horizontal, "Last Name", Qt::DisplayRole );
-	m_personsModelPtr->setHeaderData( Dob, Qt::Horizontal, "Date of burth", Qt::DisplayRole );
 	m_proxyModel.setSourceModel( m_personsModelPtr );
 	ui->personsTable->setModel( &m_proxyModel );
+	ColumnsNames columnsNames;
+	columnsNames.insert( FIRST_NAME_COL_NAME, "First Name" );
+	columnsNames.insert( LAST_NAME_COL_NAME, "Last Name" );
+	columnsNames.insert( DOB_COL_NAME,  "Date of burth" );
+	setColumnNamesAndHideAnother( ui->personsTable, columnsNames );
 
 	QHeaderView* header = ui->personsTable->horizontalHeader();
-	header->hideSection( Id );
-	header->hideSection( AddressId );
-	header->hideSection( Sex );
-	header->hideSection( Nationality );
-	header->hideSection( Email );
-	header->hideSection( Skype );
 	header->setStretchLastSection( true );
 	ui->personsTable->setSortingEnabled( true );
 
@@ -248,10 +243,10 @@ bool AddressBookMainWindow::createDb( const QString& reason )
 	if( m_database.open() )
 	{
 		QStringList columnsList;
-		columnsList << "firstname TEXT"
-					<< "lastname TEXT"
-					// << "middlename TEXT"
-					<< "dob TEXT" // Date of birth
+		columnsList << FIRST_NAME_COL_NAME + " TEXT"
+					<< LAST_NAME_COL_NAME + " TEXT"
+//					<< "middlename TEXT"
+					<< DOB_COL_NAME + " TEXT" // Date of birth
 					<< ADDRESS_FK_COL_NAME + " INTEGER"
 					<< "nationality TEXT"
 					<< "sex TEXT"
@@ -261,10 +256,10 @@ bool AddressBookMainWindow::createDb( const QString& reason )
 		result = createTable( PERSONS_TABLE_NAME, columnsList );
 		columnsList.clear();
 
-		columnsList << " addressline1 TEXT"
-				<< "addressline2 TEXT"
-				<< "addressline3 TEXT"
-			//	<< "postcode TEXT"
+		columnsList << ADDRESS_LINE1_COL_NAME + " TEXT"
+				<< ADDRESS_LINE2_COL_NAME + " TEXT"
+				<< ADDRESS_LINE3_COL_NAME + " TEXT"
+//				<< "postcode TEXT"
 				<< COUNTRY_FK_COL_NAME + " INTEGER";
 
 		result = result && createTable( ADDRESS_TABLE_NAME, columnsList );
@@ -338,9 +333,9 @@ void AddressBookMainWindow::setAddress( const QVariant& newAddressId )
 	{
 		QStringList addressTexts;
 		const QSqlRecord record = m_widgetHelpers.addRecord( ADDRESS_TABLE_NAME, newAddressId );
-		addressTexts << record.value( AddressDialog::AddrLine1 ).toString();
-		addressTexts << record.value( AddressDialog::AddrLine2 ).toString();
-		addressTexts << record.value( AddressDialog::AddrLine3 ).toString();
+		addressTexts << record.value( ADDRESS_LINE1_COL_NAME ).toString();
+		addressTexts << record.value( ADDRESS_LINE2_COL_NAME ).toString();
+		addressTexts << record.value( ADDRESS_LINE3_COL_NAME ).toString();
 		addressLabelText = addressTexts.join( ", " );
 	}
 
@@ -422,4 +417,33 @@ void AddressBookMainWindow::fillTestData()
 	}
 
 	updateTable();
+}
+
+void AddressBookMainWindow::setColumnNamesAndHideAnother( QTableView* const table,  const ColumnsNames &columnsNames )
+{
+	QHeaderView* header = table->horizontalHeader();
+
+	if( !header )
+		return;
+
+	QAbstractItemModel* tableModel = table->model();
+
+	if( !tableModel )
+		return;
+
+	for( int i = 0; i < header->count(); ++i )
+	{
+		const QString& columnName = tableModel->headerData( i, Qt::Horizontal, Qt::DisplayRole ).toString();
+
+		if( columnsNames.contains( columnName ) )
+		{
+			tableModel->setHeaderData( i, Qt::Horizontal, columnsNames.value( columnName ) );
+		}
+		else
+		{
+			header->hideSection( header->logicalIndex( i ) );
+		}
+	}
+
+	header->setStretchLastSection( true );
 }

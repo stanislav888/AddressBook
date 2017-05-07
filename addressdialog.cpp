@@ -17,16 +17,12 @@ AddressDialog::AddressDialog( QVariant id, QWidget *parent) :
 	ui->addressTable->setModel( m_addressTableModelPtr );
 	m_addressTableModelPtr->setTable( AddressBookMainWindow::ADDRESS_TABLE_NAME );
 	m_addressTableModelPtr->select();
+	AddressBookMainWindow::ColumnsNames columnsNames;
+	columnsNames.insert( AddressBookMainWindow::ADDRESS_LINE1_COL_NAME, "Addr. Line 1" );
+	columnsNames.insert( AddressBookMainWindow::ADDRESS_LINE2_COL_NAME, "Addr. Line 2" );
+	columnsNames.insert( AddressBookMainWindow::ADDRESS_LINE3_COL_NAME, "Addr. Line 3" );
+	AddressBookMainWindow::setColumnNamesAndHideAnother( ui->addressTable, columnsNames );
 	ui->countryCombo->setModel( NEW_COUNTRY_MODEL );
-
-	m_addressTableModelPtr->setHeaderData( AddrLine1, Qt::Horizontal, "Addr. Line 1", Qt::DisplayRole );
-	m_addressTableModelPtr->setHeaderData( AddrLine2, Qt::Horizontal, "Addr. Line 2", Qt::DisplayRole );
-	m_addressTableModelPtr->setHeaderData( AddrLine3, Qt::Horizontal, "Addr. Line 3", Qt::DisplayRole );
-
-	QHeaderView* header = ui->addressTable->horizontalHeader();
-	header->hideSection( Id );
-	header->hideSection( CountryId );
-	header->setStretchLastSection( true );
 	ui->addressTable->setSortingEnabled( true );
 	m_widgetHelpers.setupForm( this, AddressBookMainWindow::ADDRESS_TABLE_NAME );
 	m_widgetHelpers.setAdditionalDisableWidgets( QWidgetList() << ui->deleteButton << ui->selectButton );

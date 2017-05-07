@@ -26,10 +26,6 @@ public:
 	enum Columns // Depend with createTable( ADDRESS_TABLE_NAME, columnsList );
 	{
 		Id,
-		AddrLine1,
-		AddrLine2,
-		AddrLine3,
-		CountryId,
 	};
 
 	explicit AddressDialog( QVariant id, QWidget *parent = 0 );
