@@ -168,7 +168,7 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 		}
 	}
 
-	qDebug() << "Path to DF:" << pathToDb();
+	qDebug() << "Path to DB:" << pathToDb();
 
 	m_personsModelPtr = new QSqlTableModel( this, m_database ); // Model should create after database setup
 	m_personsModelPtr->setTable( PERSONS_TABLE_NAME );
