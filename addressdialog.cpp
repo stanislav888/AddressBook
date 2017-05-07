@@ -61,7 +61,7 @@ AddressDialog::~AddressDialog()
 
 void AddressDialog::on_newButton_clicked()
 {
-	int newRow = WidgetHelpers::addRowToModel( m_addressTableModelPtr );
+	int newRow = AddressBookMainWindow::addRowToModel( m_addressTableModelPtr );
 	newRow = ui->addressTable->rowAt( newRow );
 	ui->addressTable->selectRow( newRow );
 	selectionChangedSlot();
@@ -71,7 +71,7 @@ void AddressDialog::on_deleteButton_clicked()
 {
 	const QVariant id = m_widgetHelpers.getTableId( AddressBookMainWindow::ADDRESS_TABLE_NAME );
 
-	if( WidgetHelpers::deleteRowFromModels( m_addressTableModelPtr, &m_proxyModel, ui->addressTable ) )
+	if( AddressBookMainWindow::deleteRowFromModels( m_addressTableModelPtr, &m_proxyModel, ui->addressTable ) )
 	{
 		QSqlQuery query; // Clean usage that address in another cases
 		query.prepare( QString( "UPDATE %1 SET %2 = Q_NULLPTR WHERE %2 = :id" ).arg( AddressBookMainWindow::PERSONS_TABLE_NAME ).arg( AddressBookMainWindow::ADDRESS_FK_COL_NAME ) );
@@ -90,9 +90,9 @@ void AddressDialog::on_addressTable_doubleClicked( const QModelIndex &index )
 
 void AddressDialog::selectionChangedSlot()
 {
-	const int row = WidgetHelpers::selectedRow( ui->addressTable );
+	const int row = AddressBookMainWindow::selectedRow( ui->addressTable );
 
-	if( row == WidgetHelpers::NO_SELECTION )
+	if( row == AddressBookMainWindow::NO_SELECTION )
 	{
 		m_selectedAddressId = QVariant();
 	}

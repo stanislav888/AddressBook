@@ -212,10 +212,10 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 
 void AddressBookMainWindow::updateForm()
 {
-	const int row = WidgetHelpers::selectedRow( ui->personsTable );
+	const int row = AddressBookMainWindow::selectedRow( ui->personsTable );
 	QVariant id;
 
-	if( row != WidgetHelpers::NO_SELECTION )
+	if( row != NO_SELECTION )
 	{
 		id = m_personsModelPtr->index( row, Id ).data();
 	}
@@ -288,7 +288,7 @@ AddressBookMainWindow::~AddressBookMainWindow()
 
 void AddressBookMainWindow::on_newRecordButton_clicked()
 {
-	int newRow = WidgetHelpers::addRowToModel( m_personsModelPtr );
+	int newRow = AddressBookMainWindow::addRowToModel( m_personsModelPtr );
 	newRow = ui->personsTable->rowAt( newRow );
 	ui->personsTable->selectRow( newRow );
 	updateForm();
@@ -296,7 +296,7 @@ void AddressBookMainWindow::on_newRecordButton_clicked()
 
 void AddressBookMainWindow::on_deleteRecordButton_clicked()
 {
-	WidgetHelpers::deleteRowFromModels( m_personsModelPtr, &m_proxyModel, ui->personsTable );
+	AddressBookMainWindow::deleteRowFromModels( m_personsModelPtr, &m_proxyModel, ui->personsTable );
 	updateForm();
 }
 
@@ -446,4 +446,62 @@ void AddressBookMainWindow::setColumnNamesAndHideAnother( QTableView* const tabl
 	}
 
 	header->setStretchLastSection( true );
+}
+
+
+int AddressBookMainWindow::addRowToModel( QSqlTableModel *sourceModel )
+{
+	int row = sourceModel->rowCount();
+	bool ok = sourceModel->insertRow( row );
+	ok = ok && sourceModel->setData( sourceModel->index( row, 1 /* any user data row */ ), QVariant( QString::null ) ); // Hack for save row in DB
+	ok = ok && sourceModel->submit();
+
+	return row;
+}
+
+bool AddressBookMainWindow::deleteRowFromModels( QSqlTableModel *sourceModel, QSortFilterProxyModel* proxyModel, QTableView* tableView )
+{
+	int r = selectedRow( tableView );
+	bool ok = false;
+
+	if( r != NO_SELECTION && tableView && sourceModel && proxyModel )
+	{
+		// Little hack that cover some Qt bugs. Column index here(0) have no difference
+		tableView->hideRow( proxyModel->mapFromSource( sourceModel->index( r, 0 ) ).row() );
+		ok = sourceModel->removeRow( r );
+		sourceModel->submit();
+	}
+
+	return ok;
+}
+
+int AddressBookMainWindow::selectedRow( QTableView* tableView )
+{
+	int row = NO_SELECTION;
+
+	if( tableView )
+	{
+		QItemSelectionModel* selectionModel = tableView->selectionModel();
+
+		if( selectionModel )
+		{
+			QModelIndexList selected = selectionModel->selectedIndexes();
+
+			// For see what kind of model class used for selection model
+//			qDebug() << selected.first().model()->metaObject()->className();
+
+			if( !selected.isEmpty() )
+			{
+				QModelIndex firstIndex = selected.first();
+				const QSortFilterProxyModel* proxyModel = qobject_cast<  const QSortFilterProxyModel* >( firstIndex.model() );
+
+				if( proxyModel )
+					row = proxyModel->mapToSource( firstIndex ).row();
+				else
+					row = firstIndex.row();
+			}
+		}
+	}
+
+	return row;
 }

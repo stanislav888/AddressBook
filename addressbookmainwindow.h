@@ -43,7 +43,12 @@ public:
 	const static QString ADDRESS_LINE1_COL_NAME;
 	const static QString ADDRESS_LINE2_COL_NAME;
 	const static QString ADDRESS_LINE3_COL_NAME;
+	static const int NO_SELECTION = -1;
 	static void setColumnNamesAndHideAnother( QTableView * const table, const ColumnsNames &columnsNames );
+	static int addRowToModel( QSqlTableModel *model);
+	static bool deleteRowFromModels(QSqlTableModel *sourceModel, QSortFilterProxyModel *proxyModel, QTableView *tableView);
+	static int selectedRow( QTableView* tableView ); // Row at source model
+
 
 protected:
 	void setAddress(const QVariant &newAddressId);
