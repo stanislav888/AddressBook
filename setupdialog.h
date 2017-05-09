@@ -21,5 +21,4 @@ private slots:
 
 private:
 	Ui::SetupDialog *ui;
-	QString m_selectedFile;
 };

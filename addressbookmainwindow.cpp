@@ -9,6 +9,7 @@
 #include <QSqlQuery>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QDir>
 #include <cstdlib>
 #include "addressbookmainwindow.h"
 #include "setupdialog.h"
@@ -105,13 +106,7 @@ namespace
 
 	QString pathToDb()
 	{
-		QFileInfo fi( QSettings().value( DB_PATH_SETTING_KEY ).toString() );
-
-		if( !fi.exists() )
-			fi.setFile( QString::null );
-
-		QString filePath( fi.canonicalFilePath() );
-		return filePath;
+		return QSettings().value( DB_PATH_SETTING_KEY ).toString();
 	}
 }
 
@@ -146,8 +141,8 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 	QString dbPath( pathToDb() );
 	m_database = QSqlDatabase::addDatabase( "QSQLITE" );
 
-	if ( dbPath.isEmpty() )
-		reason = "Database not founded.";
+	if ( dbPath.isEmpty() || !QFileInfo( dbPath ).exists() )
+		reason = "Database file not founded.";
 	else
 		openDb( dbPath );
 
@@ -155,7 +150,9 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 	{
 		if( reason.isEmpty() )
 		{
-			if( !openDb( pathToDb() ) )
+			if( !QFileInfo( dbPath ).exists() )
+				reason = "No database file on last path";
+			else if( !openDb( pathToDb() ) )
 				reason = "Can't open that DB!";
 		}
 		else
@@ -190,7 +187,7 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 	ui->countryLabel->setProperty( WidgetHelpers::TABLE_NAME_PROP, COUNTRY_TABLE_NAME );
 
 	ui->countryCombo->setModel( NEW_COUNTRY_MODEL );
-	ui->countryCombo->hide();  // Hide because that data should changes at address form
+	ui->countryCombo->hide();  // Hide because that data should change at address form
 	m_widgetHelpers.setupForm( this, PERSONS_TABLE_NAME );
 	ui->nationalityCombo->setModel( new NationalityModel( this ) );
 	m_widgetHelpers.setAdditionalDisableWidgets( QWidgetList() << ui->deleteRecordButton << ui->changeAddressButton << ui->writeEmail << ui->makeCall );
@@ -237,7 +234,11 @@ bool AddressBookMainWindow::createDb( const QString& reason )
 	if( dialog.exec() == QDialog::Rejected )
 		exit( 0 ); // User can't define path. Exit program
 
-	const QString selectedFileName( dialog.selectedFile() );
+	const QFileInfo selectedFile( dialog.selectedFile() );
+	const QString selectedFileName( selectedFile.absoluteFilePath() );
+	const QDir folderCreator;
+	folderCreator.mkpath( selectedFile.dir().absolutePath() );
+
 	m_database.setDatabaseName( selectedFileName );
 
 	if( m_database.open() )
@@ -266,17 +267,17 @@ bool AddressBookMainWindow::createDb( const QString& reason )
 		columnsList.clear();
 		columnsList << COUNTRY_NAME_COLUMN << COUNTRY_CODE_COLUMN;
 		result = result && createTable( COUNTRY_TABLE_NAME, columnsList );
+
+		QSqlQuery query;
+		query.prepare( QString( "INSERT INTO %1 ( %2, %3 ) VALUES ( ?, ? ) " ).arg( COUNTRY_TABLE_NAME ).arg( COUNTRY_NAME_COLUMN ).arg( COUNTRY_CODE_COLUMN ) );
+		query.addBindValue( QVariantList() << "Russia" << "Ukraine" << "United States" << "Germany" << "Poland" << "China" << "Cambodia" );
+		query.addBindValue( QVariantList() << "RU" << "UA" << "US" << "DE" << "PL" << "CN" << "KH" );
+		result = result && query.execBatch();
+
+		QSettings settings;
+		settings.setValue( DB_PATH_SETTING_KEY, selectedFileName );
+		settings.sync();
 	}
-
-	QSqlQuery query;
-	query.prepare( QString( "INSERT INTO %1 ( %2, %3 ) VALUES ( ?, ? ) " ).arg( COUNTRY_TABLE_NAME ).arg( COUNTRY_NAME_COLUMN ).arg( COUNTRY_CODE_COLUMN ) );
-	query.addBindValue( QVariantList() << "Russia" << "Ukraine" << "United States" << "Germany" << "Poland" << "China" << "Cambodia" );
-	query.addBindValue( QVariantList() << "RU" << "UA" << "US" << "DE" << "PL" << "CN" << "KH" );
-	result = result && query.execBatch();
-
-	QSettings settings;
-	settings.setValue( DB_PATH_SETTING_KEY, selectedFileName );
-	settings.sync();
 
 	return result;
 }
@@ -344,6 +345,7 @@ void AddressBookMainWindow::setAddress( const QVariant& newAddressId )
 
 bool AddressBookMainWindow::openDb( const QString& path )
 {
+
 	m_database.setDatabaseName( path );
 	bool ok = m_database.open();
 
@@ -494,6 +496,7 @@ int AddressBookMainWindow::selectedRow( QTableView* tableView )
 			{
 				QModelIndex firstIndex = selected.first();
 				const QSortFilterProxyModel* proxyModel = qobject_cast<  const QSortFilterProxyModel* >( firstIndex.model() );
+
 
 				if( proxyModel )
 					row = proxyModel->mapToSource( firstIndex ).row();

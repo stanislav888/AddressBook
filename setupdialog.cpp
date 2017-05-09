@@ -3,6 +3,7 @@
 #include "ui_setupdialog.h"
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
+#define STANDART_PATHS_IS_PRESENT
 	#include <QStandardPaths>
 #endif
 
@@ -11,6 +12,14 @@ SetupDialog::SetupDialog(QWidget *parent) :
 	ui(new Ui::SetupDialog)
 {
 	ui->setupUi(this);
+	QString appDataFolder( "."  );
+
+#ifdef STANDART_PATHS_IS_PRESENT
+	 appDataFolder = QStandardPaths::writableLocation( QStandardPaths::AppDataLocation );
+#undef STANDART_PATHS_IS_PRESENT
+#endif
+
+	ui->pathEdit->setText( appDataFolder + "/database.sqlite" );
 }
 
 SetupDialog::~SetupDialog()
@@ -20,15 +29,11 @@ SetupDialog::~SetupDialog()
 
 void SetupDialog::on_browseButton_clicked()
 {
-	QString appDataFolder;
+	const QString result = QFileDialog::getSaveFileName( this
+								, "Choose DB file location"
+								, ui->pathEdit->text()
+								, "SQLite DB(*.sqlite)" );
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
-	 appDataFolder = QStandardPaths::writableLocation( QStandardPaths::AppDataLocation );
-#endif
-
-	QString result = QFileDialog::getSaveFileName( this, "Choose DB file location"
-								  , m_selectedFile.isEmpty() ? appDataFolder : m_selectedFile
-															   , "*.sqlite" );
 	ui->pathEdit->setText( result );
 }
 
