@@ -4,7 +4,7 @@
 int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
-	a.setOrganizationName( "Amon-Ra" ); // Using as settings folder in registry
+	a.setOrganizationName( "stanislav888@github.com" ); // Using as settings folder in registry
 	AddressBookMainWindow w;
 	w.show();
 
