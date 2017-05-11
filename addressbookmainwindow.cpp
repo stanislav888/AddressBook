@@ -17,8 +17,8 @@
 #include "nationalitymodel.h"
 #include "basecombomodel.h"
 
-#define QT_VERSION_COMPARISON QT_VERSION >= QT_VERSION_CHECK(4, 8, 0)
-#if (QT_VERSION_COMPARISON)
+#if (QT_VERSION >= QT_VERSION_CHECK(4, 8, 0))
+#define USE_UUID
 #include <QUuid>
 #else
 #include <QTime>
@@ -51,8 +51,9 @@ namespace
 	{
 		unsigned int key = 0;
 
-#if (QT_VERSION_COMPARISON)
+#ifdef USE_UUID
 		key = qHash( QUuid::createUuid() );
+#undef USE_UUID
 #else
 		key = qHash( QTime::currentTime() );
 #endif
