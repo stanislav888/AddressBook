@@ -3,7 +3,7 @@
 #include <QSortFilterProxyModel>
 #include "widgethelpers.h"
 
-#define NEW_COUNTRY_MODEL new BaseComboModel( QString( "%1 || ' - ' || %2 " ).arg( AddressBookMainWindow::COUNTRY_NAME_COLUMN ).arg( AddressBookMainWindow::COUNTRY_CODE_COLUMN ),  this )
+#define NEW_COUNTRY_MODEL new BaseComboModel( QString( "%1 || ' - ' || %2 " ).arg( AddressBookMainWindow::COUNTRY_NAME_COLUMN ).arg( AddressBookMainWindow::COUNTRY_CODE_COLUMN ), "country",  this )
 
 class QSqlTableModel;
 
