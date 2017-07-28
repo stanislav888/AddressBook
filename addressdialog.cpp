@@ -74,7 +74,7 @@ void AddressDialog::on_deleteButton_clicked()
 	if( AddressBookMainWindow::deleteRowFromModels( m_addressTableModelPtr, &m_proxyModel, ui->addressTable ) )
 	{
 		QSqlQuery query; // Clean usage that address in another cases
-		query.prepare( QString( "UPDATE %1 SET %2 = Q_NULLPTR WHERE %2 = :id" ).arg( AddressBookMainWindow::PERSONS_TABLE_NAME ).arg( AddressBookMainWindow::ADDRESS_FK_COL_NAME ) );
+		query.prepare( QString( "UPDATE %1 SET %2 = NULL WHERE %2 = :id" ).arg( AddressBookMainWindow::PERSONS_TABLE_NAME ).arg( AddressBookMainWindow::ADDRESS_FK_COL_NAME ) );
 		query.bindValue( ":id", id );
 		EXEC_SQL_QUERY( query );
 		m_addressTableModelPtr->select();
