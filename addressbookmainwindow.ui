@@ -7,11 +7,15 @@
     <x>0</x>
     <y>0</y>
     <width>715</width>
-    <height>381</height>
+    <height>394</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Address Book</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>address_book.ico</normaloff>address_book.ico</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -301,6 +305,9 @@
           <property name="text">
            <string>COUNTRY</string>
           </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
          </widget>
         </item>
         <item row="5" column="2">
@@ -326,6 +333,9 @@
           </property>
           <property name="text">
            <string>ADDRESS_LABEL</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
           </property>
           <property name="wordWrap">
            <bool>true</bool>
