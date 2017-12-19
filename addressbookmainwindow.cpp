@@ -176,7 +176,7 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 	ColumnsNames columnsNames;
 	columnsNames.insert( FIRST_NAME_COL_NAME, "First Name" );
 	columnsNames.insert( LAST_NAME_COL_NAME, "Last Name" );
-	columnsNames.insert( DOB_COL_NAME,  "Date of burth" );
+	columnsNames.insert( DOB_COL_NAME,  "Date of birth" );
 	setColumnNamesAndHideAnother( ui->personsTable, columnsNames );
 
 	QHeaderView* header = ui->personsTable->horizontalHeader();
