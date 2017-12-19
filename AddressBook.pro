@@ -4,6 +4,9 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = AddressBook
 TEMPLATE = app
+CONFIG  += c++11
+
+win32:RC_ICONS += address_book.ico
 
 SOURCES += main.cpp\
         addressbookmainwindow.cpp \
