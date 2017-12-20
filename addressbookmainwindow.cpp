@@ -33,6 +33,7 @@ namespace
 
 	const int TEST_ADDRESSES_COUNT = 8;
 	const QString DB_PATH_SETTING_KEY( "DBPath" );
+	const QString ASK_USER_PATH( "ASK_USER" );
 	const QString COUNTRY_TABLE_NAME( "country" );
 	const QString ADDRESS_FK_COL_NAME( "addressid" );
 
@@ -131,7 +132,8 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 {
 	ui->setupUi( this );
 	const QStringList driversNames = m_database.drivers();
-
+	ui->nationalityCombo->setModel( new NationalityModel( this ) ); // Will required for fillTestData();
+	
 	if( driversNames.indexOf( "QSQLITE" ) < 0 )
 	{
 		Q_ASSERT( !"Can't continue. Because your Qt library do not have SQLite driver." );
@@ -139,10 +141,11 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 	}
 
 	QString reason;
-	QString dbPath( pathToDb() );
+	const QString dbPath( pathToDb() );
+	bool askUser = dbPath == ASK_USER_PATH;
 	m_database = QSqlDatabase::addDatabase( "QSQLITE" );
 
-	if ( dbPath.isEmpty() || !QFileInfo( dbPath ).exists() )
+	if ( dbPath.isEmpty() || askUser || !QFileInfo( dbPath ).exists() )
 		reason = "Database file not founded.";
 	else
 		openDb( dbPath );
@@ -158,14 +161,20 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 		}
 		else
 		{
-			if( createDb( reason ) )
+			if( createDb( reason, askUser ) )
+			{
 				reason = QString::null;
+				ui->countryCombo->setModel( NEW_COUNTRY_MODEL ); // Just for fill countries in address as well
+				fillTestData();
+				ui->countryCombo->model()->deleteLater();
+			}
 			else
+			{
+				askUser = true; // If DB not created in standart path. Ask user next time
 				reason = "Can't create new DB in that path!";
+			}
 		}
 	}
-
-	qDebug() << "Path to DB:" << pathToDb();
 
 	m_personsModelPtr = new QSqlTableModel( this, m_database ); // Model should create after database setup
 	m_personsModelPtr->setTable( PERSONS_TABLE_NAME );
@@ -191,7 +200,6 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 	ui->countryCombo->setModel( NEW_COUNTRY_MODEL );
 	ui->countryCombo->hide();  // Hide because that data should change at address form
 	m_widgetHelpers.setupForm( this, PERSONS_TABLE_NAME );
-	ui->nationalityCombo->setModel( new NationalityModel( this ) );
 	m_widgetHelpers.setAdditionalDisableWidgets( QWidgetList() << ui->deleteRecordButton << ui->changeAddressButton << ui->writeEmail << ui->makeCall );
 	connect( ui->personsTable->selectionModel(), SIGNAL( selectionChanged(QItemSelection,QItemSelection ) ), SLOT( updateForm() ) );
 
@@ -205,8 +213,8 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 		on_newRecordButton_clicked();
 
 	updateForm();
+	statusBar()->showMessage( "Path to db: " + pathToDb() );
 	ui->nullButton->setHidden( true ); // Just fake button for null value in QRadioButton's group
-	connect( ui->fillTestDataBtn, SIGNAL( clicked( bool ) ), SLOT( fillTestData() ) );
 }
 
 QVariant AddressBookMainWindow::selectedRecordDbId()
@@ -232,15 +240,19 @@ void AddressBookMainWindow::updateForm()
 	m_widgetHelpers.fillForm( countryId, COUNTRY_TABLE_NAME );
 }
 
-bool AddressBookMainWindow::createDb( const QString& reason )
+bool AddressBookMainWindow::createDb( const QString& reason, const bool askUser )
 {
 	bool result = false;
 	SetupDialog dialog;
-	dialog.setReasonText( reason );
 
-	if( dialog.exec() == QDialog::Rejected )
-		exit( 0 ); // User can't define path. Exit program
-
+	if( askUser )
+	{
+		dialog.setReasonText( reason );
+		
+		if( dialog.exec() == QDialog::Rejected )
+			exit( 0 ); // User can't define path. Exit program
+	}
+	
 	const QFileInfo selectedFile( dialog.selectedFile() );
 	const QString selectedFileName( selectedFile.absoluteFilePath() );
 	const QDir folderCreator;
@@ -258,8 +270,8 @@ bool AddressBookMainWindow::createDb( const QString& reason )
 					<< ADDRESS_FK_COL_NAME + " INTEGER"
 					<< "nationality TEXT"
 					<< "sex TEXT"
-					<< "email"
-					<< "skype";
+					<< "email TEXT"
+					<< "skype TEXT";
 
 		result = createTable( PERSONS_TABLE_NAME, columnsList );
 		columnsList.clear();
@@ -419,13 +431,18 @@ void AddressBookMainWindow::on_deleteDbFileBtn_clicked()
 	QSqlDatabase::database().close();
 	const bool ok = QFile( pathToDb() ).remove();
 	Q_ASSERT( ok ); Q_UNUSED( ok );
+	QSettings settings;
+	settings.setValue( DB_PATH_SETTING_KEY, ASK_USER_PATH );
+	settings.sync();
 	::exit( 0 );
 }
 
 void AddressBookMainWindow::fillTestData()
 {
 	QVariant lastInsertedAddressId;
-
+	const QDate startDate( QDate::currentDate().addYears( -50 ) );
+	const int daysInManyYears = 365*30;
+	
 	for( int i = 0; i < TEST_ADDRESSES_COUNT; ++i )
 	{
 		if( i % 2 == 0 )
@@ -443,20 +460,18 @@ void AddressBookMainWindow::fillTestData()
 		}
 
 		QSqlQuery makePersonRecord;
-		makePersonRecord.prepare(  QString::fromLatin1( "INSERT INTO %1 ( %2, firstname, lastname, dob, nationality, email, skype ) VALUES( :addressid, :firstname, :lastname, :dob, :nationality, :email, :skype ) "  ).arg( PERSONS_TABLE_NAME ).arg( ADDRESS_FK_COL_NAME ) );
+		makePersonRecord.prepare(  QString::fromLatin1( "INSERT INTO %1 ( %2, firstname, lastname,  %3 , sex, nationality, email, skype ) VALUES( :addressid, :firstname, :lastname, :dob, :sex, :nationality, :email, :skype ) "  ).arg( PERSONS_TABLE_NAME ).arg( ADDRESS_FK_COL_NAME ).arg( DOB_COL_NAME ) );
 		const QString firstName( randomString( FIRST_NAMES ) );
 		makePersonRecord.bindValue( ":firstname", firstName );
 		makePersonRecord.bindValue( ":lastname", randomString( LAST_NAMES ) );
-		const int daysInManyYears = 365*30;
-		makePersonRecord.bindValue( ":dob", QDate( 1960, 0, 0 ).addDays( randomNumber( daysInManyYears ) ) );
+		makePersonRecord.bindValue( ":dob",	startDate.addDays( randomNumber( daysInManyYears ) ) );
 		makePersonRecord.bindValue( ":addressid", lastInsertedAddressId );
+		makePersonRecord.bindValue( ":sex", ( FIRST_NAMES.indexOf( firstName ) < 8 ? "male" : "female" ) );
 		makePersonRecord.bindValue( ":nationality", randomComboPoint( ui->nationalityCombo ) );
 		makePersonRecord.bindValue( ":email", QString( "%1%2@fcorp.com" ).arg( firstName.toLower() ).arg( randomNumber( 1000 ) ) );
 		makePersonRecord.bindValue( ":skype", QString( "%1_%2" ).arg( firstName ).arg( randomNumber( 1000 ) ) );
 		EXEC_SQL_QUERY( makePersonRecord );
 	}
-
-	updateTable();
 }
 
 void AddressBookMainWindow::setColumnNamesAndHideAnother( QTableView* const table,  const ColumnsNames &columnsNames )
@@ -545,4 +560,10 @@ int AddressBookMainWindow::selectedRow( QTableView* tableView )
 	}
 
 	return row;
+}
+
+void AddressBookMainWindow::on_fillTestDataBtn_clicked()
+{
+	fillTestData();
+	updateTable();
 }

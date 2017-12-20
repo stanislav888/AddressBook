@@ -22,7 +22,7 @@ class AddressBookMainWindow : public QMainWindow
 	QSqlDatabase m_database;
 	QSqlTableModel* m_personsModelPtr;
 	QSortFilterProxyModel m_proxyModel;
-	bool createDb( const QString& reason );
+	bool createDb(const QString& reason , const bool askUser );
 	bool openDb(const QString &path);
 	void openExternalLink(const QLineEdit *edit);
     QVariant selectedRecordDbId();
@@ -66,4 +66,5 @@ private slots:
 	void on_deleteDbFileBtn_clicked();
 	void fillTestData();
 	void updateTable(QString tableName, QString columnName, QVariant id, QVariant value);
+	void on_fillTestDataBtn_clicked();
 };
