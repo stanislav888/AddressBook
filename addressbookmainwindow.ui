@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>715</width>
-    <height>394</height>
+    <height>417</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Address Book(example project)</string>
+   <string>Address Book</string>
   </property>
   <property name="windowIcon">
    <iconset>
@@ -358,6 +358,16 @@
        </layout>
       </item>
      </layout>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Just example of desktop application with installer. Let me make much more better for you!</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
