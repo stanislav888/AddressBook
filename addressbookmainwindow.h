@@ -25,7 +25,8 @@ class AddressBookMainWindow : public QMainWindow
 	bool createDb( const QString& reason );
 	bool openDb(const QString &path);
 	void openExternalLink(const QLineEdit *edit);
-
+    QVariant selectedRecordDbId();
+	
 public:
 	typedef QHash< QString, QString > ColumnsNames;
 
@@ -48,12 +49,11 @@ public:
 	static int addRowToModel( QSqlTableModel *model);
 	static bool deleteRowFromModels(QSqlTableModel *sourceModel, QSortFilterProxyModel *proxyModel, QTableView *tableView);
 	static int selectedRow( QTableView* tableView ); // Row at source model
+	static void updateTable(QTableView *table, QSqlTableModel *sourceModel, QString, QString columnName, QVariant id, QVariant value);
 
-
+	
 protected:
 	void setAddress(const QVariant &newAddressId);
-
-protected slots:
 	void updateTable();
 
 private slots:
@@ -65,4 +65,5 @@ private slots:
 	void on_makeCall_clicked();
 	void on_deleteDbFileBtn_clicked();
 	void fillTestData();
+	void updateTable(QString tableName, QString columnName, QVariant id, QVariant value);
 };

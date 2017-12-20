@@ -46,7 +46,7 @@ AddressDialog::AddressDialog( QVariant id, QWidget *parent) :
 	}
 
 	selectionChangedSlot();
-	connect( &m_widgetHelpers, SIGNAL( dataChanged( QString, QString, QVariant, QVariant ) ), SLOT( updateTable() ) );
+	connect( &m_widgetHelpers, SIGNAL( dataChanged( QString, QString, QVariant, QVariant ) ), SLOT(  updateTable( QString , QString , QVariant , QVariant ) ) );
 }
 
 QVariant AddressDialog::selectedAddressId() const
@@ -114,8 +114,7 @@ void AddressDialog::on_closeButtojn_clicked()
 	reject();
 }
 
-void AddressDialog::updateTable()
+void AddressDialog::updateTable( QString tableName, QString columnName, QVariant id, QVariant value )
 {
-	if( m_addressTableModelPtr )
-		m_addressTableModelPtr->select();
+	AddressBookMainWindow::updateTable( ui->addressTable, m_addressTableModelPtr, tableName, columnName, id, value );
 }

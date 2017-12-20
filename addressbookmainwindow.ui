@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Address Book</string>
+   <string>Address Book(example project)</string>
   </property>
   <property name="windowIcon">
    <iconset>

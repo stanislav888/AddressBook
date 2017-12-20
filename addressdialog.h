@@ -36,8 +36,8 @@ protected slots:
 	void selectionChangedSlot();
 	void on_newButton_clicked();
 	void on_deleteButton_clicked();
-	void on_addressTable_doubleClicked(const QModelIndex &index);
-	void updateTable();
+	void on_addressTable_doubleClicked( const QModelIndex &index );
+	void updateTable( QString tableName, QString columnName, QVariant id, QVariant value );
 
 private slots:
 	void on_selectButton_clicked();

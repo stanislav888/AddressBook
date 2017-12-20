@@ -169,6 +169,7 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 
 	m_personsModelPtr = new QSqlTableModel( this, m_database ); // Model should create after database setup
 	m_personsModelPtr->setTable( PERSONS_TABLE_NAME );
+	
 	m_personsModelPtr->select();
 	m_personsModelPtr->setEditStrategy( QSqlTableModel::OnFieldChange );
 	m_proxyModel.setSourceModel( m_personsModelPtr );
@@ -196,7 +197,7 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 
 	connect( &m_widgetHelpers
 			 , SIGNAL( dataChanged( QString, QString , QVariant , QVariant ) )
-			 , SLOT( updateTable() ) );
+			 , SLOT( updateTable( QString, QString , QVariant , QVariant ) ) );
 
 	if( m_personsModelPtr->rowCount() > 0 )
 		ui->personsTable->selectRow( 0 );
@@ -208,17 +209,22 @@ AddressBookMainWindow::AddressBookMainWindow(QWidget *parent) :
 	connect( ui->fillTestDataBtn, SIGNAL( clicked( bool ) ), SLOT( fillTestData() ) );
 }
 
-void AddressBookMainWindow::updateForm()
+QVariant AddressBookMainWindow::selectedRecordDbId()
 {
-	const int row = AddressBookMainWindow::selectedRow( ui->personsTable );
+    const int row = AddressBookMainWindow::selectedRow( ui->personsTable );
 	QVariant id;
 
 	if( row != NO_SELECTION )
 	{
 		id = m_personsModelPtr->index( row, Id ).data();
 	}
+    
+    return id;
+}
 
-	m_widgetHelpers.fillForm( id );
+void AddressBookMainWindow::updateForm()
+{
+	m_widgetHelpers.fillForm( selectedRecordDbId() );
 	const QVariant addressId = m_widgetHelpers.getFieldValue( PERSONS_TABLE_NAME, ADDRESS_FK_COL_NAME );
 	setAddress( addressId );
 	m_widgetHelpers.fillForm( addressId, ADDRESS_TABLE_NAME );
@@ -304,8 +310,39 @@ void AddressBookMainWindow::on_deleteRecordButton_clicked()
 
 void AddressBookMainWindow::updateTable()
 {
+    QWidget* fw = focusWidget();
+	
 	if( m_personsModelPtr )
+	{	
 		m_personsModelPtr->select();
+	}
+	
+	if( fw )
+		fw->setFocus( Qt::MouseFocusReason );
+}
+
+void AddressBookMainWindow::updateTable( QString  tableName, QString columnName , QVariant id , QVariant value )
+{
+	updateTable( ui->personsTable, m_personsModelPtr, tableName, columnName, id, value );
+}
+
+void AddressBookMainWindow::updateTable( QTableView* table, QSqlTableModel* sourceModel,  QString /* tableName */, QString columnName , QVariant id , QVariant value )
+{
+	if( id.isValid() && table && sourceModel )
+	{
+		const QModelIndexList list = sourceModel->match( sourceModel->index( 0, Id ), Qt::DisplayRole, id, 1, Qt::MatchExactly );
+		const QHeaderView* header = table->horizontalHeader();
+		
+		if( !list.isEmpty() && header )
+		{
+			const int logicalCol = sourceModel->fieldIndex( columnName );
+			
+			if( !header->isSectionHidden( logicalCol ) )
+			{
+				sourceModel->setData( sourceModel->index( list.first().row(), logicalCol ), value );
+			}
+		}
+	}
 }
 
 void AddressBookMainWindow::on_changeAddressButton_clicked()
