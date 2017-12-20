@@ -6,7 +6,7 @@ TARGET = AddressBook
 TEMPLATE = app
 CONFIG  += c++11
 
-win32:RC_ICONS += address_book.ico
+win32:RC_ICONS += address_book.png
 
 SOURCES += main.cpp\
         addressbookmainwindow.cpp \
