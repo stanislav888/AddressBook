@@ -19,7 +19,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Please specify path to .sqlite file with DB.</string>
+        <string>Please specify path to .sqlite file with DB. (Just press OK if unsure)</string>
        </property>
       </widget>
      </item>
