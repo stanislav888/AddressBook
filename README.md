@@ -1,5 +1,4 @@
-Example program for Qt forms interaction with SQL DB. 
+An example program of Qt forms interaction with a SQL DB.
+It demonstrates a number of original programming approaches related to Qt Widgets.
+Please check [articles](https://github.com/stanislav888/AddressBook/wiki) in English & Russian to see the all details.
 
-Program installers for Windows and Linux - https://yadi.sk/d/A9Iff6823QMuCG
-
-Articles about programming approaches used in project - https://github.com/stanislav888/AddressBook/wiki
